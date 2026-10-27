@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Estudiantes</title>
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #eef2f7;
+            margin: 40px 20px;
+            color: #263445;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1d4ed8;
+            margin-bottom: 25px;
+        }
+
+        form {
+            background-color: white;
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px;
+            margin-bottom: 20px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 4px rgba(37, 99, 235, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: wait;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                margin: 20px 12px;
+            }
+
+            form {
+                padding: 22px;
+            }
+        }
+    </style>
+
+    <!-- Biblioteca de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+    <h1>Registro de estudiantes</h1>
+
+    <form id="formularioEstudiante">
+        <label for="nombre">Nombre del estudiante</label>
+        <input
+            type="text"
+            id="nombre"
+            maxlength="100"
+            required
+        >
+
+        <label for="edad">Edad del estudiante</label>
+        <input
+            type="number"
+            id="edad"
+            min="1"
+            max="120"
+            step="1"
+            required
+        >
+
+        <label for="nota">Nota del estudiante</label>
+        <input
+            type="number"
+            id="nota"
+            min="0"
+            max="100"
+            step="0.01"
+            required
+        >
+
+        <button type="submit" id="botonRegistrar">
+            Registrar estudiante
+        </button>
+    </form>
+
+    <script>
+        // 1. Datos de conexión de Supabase
+        const SUPABASE_URL =
+            "https://aptbgtlbjwpeubyvvfcv.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_4zumSASHWBEMt7LIlhA1xw_1xZ3Bz0r";
+
+        // 2. Crear la conexión
+        const supabaseClient = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+        // 3. Obtener los elementos del formulario
+        const formularioEstudiante =
+            document.getElementById("formularioEstudiante");
+
+        const botonRegistrar =
+            document.getElementById("botonRegistrar");
+
+        // 4. Registrar un estudiante en la base de datos
+        formularioEstudiante.addEventListener(
+            "submit",
+            async function(evento) {
+                evento.preventDefault();
+
+                const nombre =
+                    document.getElementById("nombre").value.trim();
+
+                const edad =
+                    Number(document.getElementById("edad").value);
+
+                const nota =
+                    Number(document.getElementById("nota").value);
+
+                // Validar los datos antes de enviarlos
+                if (
+                    nombre.length < 1 ||
+                    edad < 1 ||
+                    edad > 120 ||
+                    !Number.isInteger(edad) ||
+                    nota < 0 ||
+                    nota > 100
+                ) {
+                    alert("Revisá los datos ingresados.");
+                    return;
+                }
+
+                // Evitar envíos repetidos mientras se procesa
+                botonRegistrar.disabled = true;
+                botonRegistrar.textContent = "Guardando...";
+
+                try {
+                    const { error } = await supabaseClient
+                        .from("registros")
+                        .insert([
+                            {
+                                nombre: nombre,
+                                edad: edad,
+                                nota: nota
+                            }
+                        ]);
+
+                    if (error) {
+                        console.error(
+                            "Error al guardar:",
+                            error.message
+                        );
+
+                        alert(
+                            "No se pudo guardar el estudiante. " +
+                            "Revisá la consola del navegador."
+                        );
+
+                        return;
+                    }
+
+                    alert(
+                        "¡Estudiante registrado correctamente!"
+                    );
+
+                    formularioEstudiante.reset();
+
+                } catch (error) {
+                    console.error(
+                        "Error de conexión:",
+                        error
+                    );
+
+                    alert(
+                        "No se pudo conectar con Supabase. " +
+                        "Revisá tu conexión a internet."
+                    );
+
+                } finally {
+                    botonRegistrar.disabled = false;
+                    botonRegistrar.textContent =
+                        "Registrar estudiante";
+                }
+            }
+        );
+    </script>
+</body>
+</html>
