@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .contenedor {
+            max-width: 450px;
+            margin: 60px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 7px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 22px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #mensaje {
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <h1>Panel de administrador</h1>
+
+        <p>Iniciá sesión para consultar los registros.</p>
+
+        <form id="formularioLogin">
+
+            <label for="correo">Correo electrónico</label>
+            <input type="email" id="correo" required>
+
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" required>
+
+            <button type="submit">Iniciar sesión</button>
+
+        </form>
+
+        <p id="mensaje"></p>
+
+    </div>
+
+    <script>
+        const SUPABASE_URL = "TU_URL_DE_SUPABASE";
+        const SUPABASE_KEY = "TU_CLAVE_PUBLICABLE";
+
+        const supabaseClient = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+        const formularioLogin = document.getElementById("formularioLogin");
+        const mensaje = document.getElementById("mensaje");
+
+        formularioLogin.addEventListener("submit", async function(evento) {
+            evento.preventDefault();
+
+            const correo = document.getElementById("correo").value;
+            const password = document.getElementById("password").value;
+
+            mensaje.textContent = "Verificando acceso...";
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: correo,
+                password: password
+            });
+
+            if (error) {
+                mensaje.textContent = "Correo o contraseña incorrectos.";
+                return;
+            }
+
+            if (data.user.id !== "TU_UID_DE_ADMINISTRADOR") {
+                await supabaseClient.auth.signOut();
+                mensaje.textContent = "No tenés autorización para entrar.";
+                return;
+            }
+
+            mensaje.textContent = "¡Bienvenido, administrador!";
+        });
+    </script>
+
+</body>
+</html>
